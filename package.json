@@ -2,7 +2,7 @@
   "name": "angular-webrtc",
   "version": "1.0.1",
   "description": "AngularJS WebRTC",
-  "main": "index.html",
+  "main": "dist/js/ngWebRTC.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
