@@ -1,35 +1,20 @@
 # ngWebRTC - AngularJS WebRTC Module
 
-## Dependencies
-
-- angular-base64
-
 ## Setup
-
-Using bower
-
-```bower install --save ngwebrtc```
-
 Using npm
 
 ```npm install --save ngwebrtc```
 
 ## Usage
+Recommended is to use ES6-style imports to include the module. It exports the
+module name which you must add as a dependency to your app:
 
-Add the following lines to your index.html :
-```
-<script type="text/javascript" src="{bower_directory}/angular-base64/angular-base64.js"></script>
-<script type="text/javascript" src="{bower_directory}/angular-webrtc/dist/js/ngWebRTC.js"></script>
-```
+```js
+import webrtc 'angular-webrtc';
 
-And the following dependencies to your angular app : 
-
-```
-angular.module('app',
-  [
-    'base64',
-    'ngWebRTC'
-  ])
+angular.module('myAwesomeApp', [webrtc])
+    // ...
+    ;
 ```
 
 This module provides a **$webrtc** service to handle your WebRTC interactions.
@@ -38,6 +23,20 @@ Browser-related interactions have been wrapped to be as easy to use as possible,
 understanding of the [WebRTC protocol](https://www.w3.org/TR/webrtc)**.
 
 ### Initialisation
+First and foremost, you have to retrieve your local browser's stream. This is
+done using a _promise_:
+
+```js
+$webtrc.getUserMedia(constraints).then(stream => {
+    // You can store the stream locally for further processing if you need.
+}).catch(error => console.log(error));
+```
+
+If the user's browser does not support audio/video (as defined by the
+constraints parameter) the promise is rejected.
+
+The constraints default to `{audio: true, video: true}` so you can omit the
+parameter if this is what your application requires.
 
 First, you have to retrieve your local browser's stream using 
 
