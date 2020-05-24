@@ -8,8 +8,9 @@ const sdpConstraints = {
 };
 
 let stream = undefined;
+let externalStream = undefined;
 // Default iceServer configuration
-let iceConfig = {'iceServers': [{'urls': 'stun.l.google.com:19302'}]};
+let iceConfig = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]};
 let serverConfig = {
     url: '',
     methods: {
@@ -65,6 +66,7 @@ export default class Service {
     acceptOffer(offer) {
         const peerConnection = getPeerConnection(offer.emitter);
         offer = {sdp: offer.RTCDescription, type: 'offer', emitter: offer.emitter};
+        console.log(offer);
         peerConnection.setRemoteDescription(new window.RTCSessionDescription(offer));
         angular.forEach(ice, function (iceCandidate) {
             peerConnection.addIceCandidate(new window.RTCIceCandidate(iceCandidate));
@@ -101,7 +103,8 @@ export default class Service {
                 function (error) {
                     deferred.reject(error);
                 },
-                sdpConstraints);
+                sdpConstraints
+            );
         return deferred.promise;
     }
 
@@ -186,9 +189,9 @@ function getPeerConnection(id) {
     }
     const peerConnection = new RTCPeerConnection(iceConfig)
     peerConnections[id] = peerConnection;
-    peerConnection.addStream(_stream);
+    peerConnection.addStream(stream);
     peerConnection.onicecandidate = event => onIceCandidate(event, id);
-    peerConnection.onaddstream = onAddStream;
+    peerConnection.ontrack = onAddStream;
     peerConnection.oniceconnectionstatechange = () => onIceConnectionStateChange(peerConnection.iceConnectionState);
     return peerConnection;
 }
@@ -196,25 +199,25 @@ function getPeerConnection(id) {
 function onIceConnectionStateChange(state) {
     switch (state) {
         case 'disconnected':
-          _disconnectCallback(state);
+          callbacks.onDisconnect(state);
           break;
         case 'connected':
-          _connectCallback(state);
+          callbacks.onConnect(state);
           break;
         case 'completed':
-          _connectCallback(state);
+          callbacks.onConnect(state);
           break;
         case 'checking':
-          _pendingCallback(state);
+          callbacks.onPending(state);
           break;
         default:
-          _pendingCallback(state);
+          callbacks.onPending(state);
           break;
     }
 }
 
 function onAddStream(event) {
-    externalStream = event.stream;
+    externalStream = event.streams[0] || undefined;
 };
 
 
