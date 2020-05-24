@@ -177,6 +177,10 @@ function acceptAnswer(answer) {
 }
 
 function getPeerConnection(id) {
+    let peerConnections = undefined;
+    if (!peerConnections) {
+        peerConnections = {};
+    }
     if (peerConnections[id]) {
         return peerConnections[id];
     }
