@@ -55,8 +55,7 @@ export default class Service {
         return streamPromise.promise;
     }
 
-    setServerConfig(_serverConfig, _iceConfig = undefined)
-    {
+    setServerConfig(_serverConfig, _iceConfig = undefined) {
         serverConfig = _serverConfig;
         if (_iceConfig) {
             iceConfig = _iceConfig;
@@ -66,7 +65,7 @@ export default class Service {
     getOffers() {
         const deferred = privates.get(this).$q.defer();
         serverConfig.methods.get('/webrtc/offer')
-            .then(request => deferred.resolve(parseData(request.data.offers)))
+            .then(request => deferred.resolve(parseData.call(this, request.data.offers)))
             .catch(error => deferred.reject(error));
         return deferred.promise;
     }
@@ -74,7 +73,6 @@ export default class Service {
     acceptOffer(offer) {
         const peerConnection = getPeerConnection(offer.emitter);
         offer = {sdp: offer.RTCDescription, type: 'offer', emitter: offer.emitter};
-        console.log(offer);
         peerConnection.setRemoteDescription(new window.RTCSessionDescription(offer));
         angular.forEach(ice, function (iceCandidate) {
             peerConnection.addIceCandidate(new window.RTCIceCandidate(iceCandidate));
@@ -139,9 +137,6 @@ export default class Service {
         return deferred.promise;
     }
 
-    init() {
-    }
-
     onExternalIceCandidate() {
         const peerConnection = getPeerConnection(iceCandidate.emitter);
         peerConnection.addIceCandidate(new window.RTCIceCandidate(iceCandidate.ice));
@@ -161,10 +156,9 @@ function parseData(offers) {
                 break;
             case 'sdp-answer':
                 offer.RTCDescription = $base64.decode(offer.RTCDescription);
-                acceptAnswer(offer);
+                acceptAnswer.call(this, offer);
                 break;
             case 'ice':
-                console.log('got ice from server : ', offer)
                 ice.push(offer.ice);
                 break;
         }
