@@ -30,10 +30,16 @@ window.RTCIceCandidate = window.RTCIceCandidate || window.mozRTCIceCandidate || 
 window.RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 
+let debug = false;
+
 export default class Service {
 
     constructor($q, $base64) {
         privates.set(this, {$q, $base64});
+    }
+
+    setDebugMode(to = true) {
+        debug = to;
     }
 
     onConnect(ack) {
@@ -80,15 +86,21 @@ export default class Service {
         peerConnection.createAnswer(description => {
             peerConnection.setLocalDescription(description);
             serverConfig.methods.postOffer(description, offer.emitter, 'sdp-answer')
-                .then(function () {
-                    console.log('ngWebRTC :: acceptOffer success')
+                .then(() => {
+                    if (debug) {
+                        console.log('ngWebRTC :: acceptOffer success');
+                    }
                 })
-                .catch(function (error) {
-                    console.log('ngWebRTC :: acceptOffer error', error)
+                .catch(error => {
+                    if (debug) {
+                        console.log('ngWebRTC :: acceptOffer error', error);
+                    }
                 })
             },
-            function (error) {
-                console.log(error)
+            error => {
+                if (debug) {
+                    console.log('ngWebRTC :: peerConnection.createAnswer error', error);
+                }
             });
     }
 
@@ -174,11 +186,15 @@ function acceptAnswer(answer) {
     });
     peerConnection.setRemoteDescription(
         new window.RTCSessionDescription(answer),
-        function () {
-            console.log('Added answer as local description : ', answer);
+        () => {
+            if (debug) {
+                console.log('ngWebRTC :: Added answer as local description : ', answer);
+            }
         },
-        function (error) {
-            console.log(error);
+        error => {
+            if (debug) {
+                console.log('ngWebRTC :: peerConnection.setRemoteDescription error', error);
+            }
         }
     );
 }
