@@ -1,4 +1,7 @@
-'use strict'
+
+"use strict";
+
+import 'angular-base64';
 
 const privates = new WeakMap;
 const callbacks = {};
@@ -19,6 +22,7 @@ let serverConfig = {
     }
 };
 let ice = [];
+let streamPromise = undefined;
 
 // Multi-browser globals config hacks
 window.RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
@@ -45,6 +49,10 @@ export default class Service {
     onPending(ack) {
         callbacks.onPending = ack;
         return this;
+    }
+
+    onStream() {
+        return streamPromise.promise;
     }
 
     setServerConfig(_serverConfig, _iceConfig = undefined)
@@ -109,6 +117,8 @@ export default class Service {
     }
 
     getExternalMediaStream() {
+        streamPromise = privates.get(this).$q.defer();
+        return streamPromise.promise;
         return externalStream;
     }
 
@@ -218,6 +228,10 @@ function onIceConnectionStateChange(state) {
 
 function onAddStream(event) {
     externalStream = event.streams[0] || undefined;
+    if (streamPromise) {
+        streamPromise.resolve(externalStream);
+        streamPromise = undefined;
+    }
 };
 
 
